@@ -7,11 +7,11 @@ public class MyComponent extends GenericService {
 	
 	@ATGTransaction
 	public void executeTransaction() {
-		System.out.println("com.renner.proxy.MyObject.executeTransaction()");
+		System.out.println("com.leonhardt.transaction.MyComponent.executeTransaction()");
 	}
 
 	public void execute() {
-		System.out.println("com.renner.proxy.MyObject.execute()");
+		System.out.println("com.leonhardt.transaction.MyComponent.execute()");
 	}
 
 }
