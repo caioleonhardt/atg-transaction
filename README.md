@@ -1,6 +1,6 @@
 ATG Transaction
 ----------
-Transactions in ATG 10.0.3 is ugly and use repetitive code. The solution was create a proxy with cglib, it make the method annotable and transparent, see bellow.
+Transactions in ATG 10.0.3 are ugly and use repetitive code. The solution was create a proxy with cglib, it make the method annotable and transparent, see bellow.
 
 In your class:
 
