@@ -1,0 +1,5 @@
+Manifest-Version: 1.0
+ATG-Config-Path: config/
+ATG-Class-Path: lib/classes.jar
+ATG-Client-Class-Path: lib/classes.jar
+ATG-Required: DAS
