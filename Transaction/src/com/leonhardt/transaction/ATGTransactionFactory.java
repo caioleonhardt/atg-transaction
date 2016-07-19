@@ -19,7 +19,6 @@ public class ATGTransactionFactory implements InstanceFactory {
 	@Override
 	public boolean copyState(Nucleus arg0, PropertyConfiguration arg1,
 			Object arg2, Object arg3) throws InstanceFactoryException {
-		// TODO Auto-generated method stub
 		return false;
 	}
 
