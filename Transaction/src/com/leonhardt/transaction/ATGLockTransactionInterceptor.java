@@ -4,6 +4,8 @@ import java.lang.reflect.Method;
 
 import javax.transaction.TransactionManager;
 
+import net.sf.cglib.proxy.MethodInterceptor;
+import net.sf.cglib.proxy.MethodProxy;
 import atg.commerce.order.Order;
 import atg.commerce.order.OrderManager;
 import atg.dtm.TransactionDemarcation;
@@ -12,9 +14,6 @@ import atg.nucleus.GenericService;
 import atg.service.lockmanager.ClientLockManager;
 import atg.service.lockmanager.DeadlockException;
 import atg.service.lockmanager.LockManagerException;
-import atg.servlet.ServletUtil;
-import net.sf.cglib.proxy.MethodInterceptor;
-import net.sf.cglib.proxy.MethodProxy;
 
 public class ATGLockTransactionInterceptor extends GenericService implements MethodInterceptor {
 
@@ -41,9 +40,8 @@ public class ATGLockTransactionInterceptor extends GenericService implements Met
 			}
 		}
 	
-		// if request is not null, use the profileId to create the lock
-		// otherwise must be used the orderId to create the lock
-		String lockId = ServletUtil.getCurrentRequest() == null ? order.getId() : order.getProfileId();
+		ATGLockTransaction annotation = method.getAnnotation(ATGLockTransaction.class);
+		String lockId = LockType.PROFILE.equals(annotation.lockType()) ?  order.getProfileId() : order.getId();
 
 		try {
 			acquireLock = !clm.hasWriteLock(lockId, Thread.currentThread());
@@ -57,14 +55,10 @@ public class ATGLockTransactionInterceptor extends GenericService implements Met
 				vlogDebug("starting transaction");
 				td.begin(tm, TransactionDemarcation.REQUIRED );
 
-				synchronized (order) {
-					vlogDebug("invoking method");
-					result = methodProxy.invokeSuper(object, args);
-
-					vlogDebug("updationg order");
-					getOrderManager().updateOrder(order);
-				}
+				vlogDebug("invoking method");
+				result = methodProxy.invokeSuper(object, args);
 				vlogDebug("method was executed with success");
+
 				return result;
 			} catch (Throwable e) {
 				shouldRollback = true;

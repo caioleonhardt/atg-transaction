@@ -17,6 +17,7 @@ public class MyComponent extends GenericService {
 	@ATGLockTransaction
 	public void executeLockTransaction(Order order, String id) {
 		System.out.println("executeLockTransaction");
+		
 	}
 
 	public void execute() {
