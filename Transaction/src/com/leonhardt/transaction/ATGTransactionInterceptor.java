@@ -4,61 +4,54 @@ import java.lang.reflect.Method;
 
 import javax.transaction.TransactionManager;
 
+import net.sf.cglib.proxy.MethodInterceptor;
+import net.sf.cglib.proxy.MethodProxy;
 import atg.dtm.TransactionDemarcation;
 import atg.dtm.TransactionDemarcationException;
 import atg.nucleus.GenericService;
-import net.sf.cglib.proxy.MethodInterceptor;
-import net.sf.cglib.proxy.MethodProxy;
 
 public class ATGTransactionInterceptor extends GenericService implements MethodInterceptor {
-
+	
 	private TransactionManager transactionManager;
-	
-	public ATGTransactionInterceptor() {
-		super();
-	}
-	
+
 	@Override
-	public Object intercept(Object object, Method method, Object[] args, MethodProxy methodProxy) throws Throwable {
-		
+	public Object intercept(Object object, Method method, Object[] args,
+			MethodProxy methodProxy) throws Throwable {
+
+		vlogDebug("before transaction");
+
+		TransactionManager tm = getTransactionManager();
+		TransactionDemarcation td = new TransactionDemarcation();
+		boolean shouldRollback = false;
 		Object response = null;
 		
-		if (method.isAnnotationPresent(ATGTransaction.class)) {
-			vlogDebug("inside transaction");
+		try {
+			if (tm != null) {
+				vlogDebug("starting transaction");
+				td.begin(tm, TransactionDemarcation.REQUIRED);
+				
+				vlogDebug("invoking method");
+				response = methodProxy.invokeSuper(object, args);
+			}
 			
-			TransactionManager tm = getTransactionManager();
-			TransactionDemarcation td = new TransactionDemarcation();
-			boolean shouldRollback = false;
-			
+			return response;
+		} catch (Throwable e) {
+			shouldRollback = true;
+			vlogDebug("rollback transaction");
+			throw e;
+		} finally {
 			try {
 				if (tm != null) {
-					td.begin(tm, TransactionDemarcation.REQUIRED);
-					vlogDebug("init transaction");
-					response = methodProxy.invokeSuper(object, args);				
+					vlogDebug("fishing transaction");
+					td.end(shouldRollback);
 				}
-			} catch (Throwable e) {
-				shouldRollback = true;
-				vlogDebug("rollback transaction");
-				throw e;
-			} finally {
-				try {
-					if (tm != null) {
-						td.end(shouldRollback);
-						vlogDebug("fishing transaction");
-					}
-				} catch (TransactionDemarcationException tde) {
-					if (isLoggingError()) {
-						logError(tde);
-					}
+			} catch (TransactionDemarcationException tde) {
+				if (isLoggingError()) {
+					logError(tde);
 				}
+				throw tde;
 			}
-			vlogDebug("outside transaction");
 		}
-		else {
-			response = methodProxy.invokeSuper(object, args);
-		}
-		
-		return response;
 	}
 
 	public TransactionManager getTransactionManager() {
@@ -68,5 +61,4 @@ public class ATGTransactionInterceptor extends GenericService implements MethodI
 	public void setTransactionManager(TransactionManager transactionManager) {
 		this.transactionManager = transactionManager;
 	}
-
 }

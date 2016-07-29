@@ -1,25 +1,56 @@
 package com.leonhardt.transaction;
 
+import java.lang.reflect.Method;
+import java.util.List;
+
+import net.sf.cglib.proxy.Callback;
+import net.sf.cglib.proxy.CallbackFilter;
+import net.sf.cglib.proxy.Enhancer;
+import net.sf.cglib.proxy.NoOp;
+import atg.nucleus.GenericService;
 import atg.nucleus.InstanceFactory;
 import atg.nucleus.InstanceFactoryException;
 import atg.nucleus.Nucleus;
 import atg.nucleus.PropertyConfiguration;
 import atg.nucleus.SubClasser;
-import net.sf.cglib.proxy.Enhancer;
-import net.sf.cglib.proxy.MethodInterceptor;
 
 /**
  * This class is used to create the instance from some component
  * that has the property $intanceFactory
  */
-public class ATGTransactionFactory implements InstanceFactory {
+public class ATGTransactionFactory extends GenericService implements InstanceFactory {
 
-	private MethodInterceptor interceptor;
+	private List<Callback> callbacks;
+	
+	private static CallbackFilter filter = new CallbackFilter() {
+		
+		/**
+		 * @return the index of {@link Callback} array to use
+		 */
+		@Override
+		public int accept(Method method) {
+			if (method.isAnnotationPresent(ATGTransaction.class)) {
+				return 1;
+			}
+
+			if (method.isAnnotationPresent(ATGLockTransaction.class)) {
+				return 2;
+			}
+			
+			return 0;
+		}
+	};
+
+	@Override
+	public void doStartService() throws atg.nucleus.ServiceException {
+		if (callbacks != null && callbacks.get(0) instanceof NoOp) {
+			callbacks.add(0, NoOp.INSTANCE);			
+		}
+	};
 
 	@Override
 	public boolean copyState(Nucleus arg0, PropertyConfiguration arg1,
 			Object arg2, Object arg3) throws InstanceFactoryException {
-		// TODO Auto-generated method stub
 		return false;
 	}
 
@@ -31,7 +62,8 @@ public class ATGTransactionFactory implements InstanceFactory {
 		
 		Enhancer e = new Enhancer();		
 		e.setSuperclass(loaded);
-		e.setCallback(getInterceptor());
+		e.setCallbackFilter(filter);
+		e.setCallbacks((Callback[]) getCallbacks().toArray());
 		
 		return e.create();
 	}
@@ -46,11 +78,11 @@ public class ATGTransactionFactory implements InstanceFactory {
 		return false;
 	}
 
-	public MethodInterceptor getInterceptor() {
-		return interceptor;
+	public List<Callback> getCallbacks() {
+		return callbacks;
 	}
 
-	public void setInterceptor(MethodInterceptor interceptor) {
-		this.interceptor = interceptor;
+	public void setCallbacks(List<Callback> callbacks) {
+		this.callbacks = callbacks;
 	}
 }
