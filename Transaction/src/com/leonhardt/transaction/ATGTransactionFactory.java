@@ -1,7 +1,6 @@
 package com.leonhardt.transaction;
 
 import java.lang.reflect.Method;
-import java.util.List;
 
 import net.sf.cglib.proxy.Callback;
 import net.sf.cglib.proxy.CallbackFilter;
@@ -20,7 +19,8 @@ import atg.nucleus.SubClasser;
  */
 public class ATGTransactionFactory extends GenericService implements InstanceFactory {
 
-	private List<Callback> callbacks;
+	private ATGTransactionInterceptor transactionCallback;
+	private ATGLockTransactionInterceptor lockTransactionCallback;
 	
 	private static CallbackFilter filter = new CallbackFilter() {
 		
@@ -41,12 +41,6 @@ public class ATGTransactionFactory extends GenericService implements InstanceFac
 		}
 	};
 
-	@Override
-	public void doStartService() throws atg.nucleus.ServiceException {
-		if (callbacks != null && callbacks.get(0) instanceof NoOp) {
-			callbacks.add(0, NoOp.INSTANCE);			
-		}
-	};
 
 	@Override
 	public boolean copyState(Nucleus arg0, PropertyConfiguration arg1,
@@ -63,7 +57,13 @@ public class ATGTransactionFactory extends GenericService implements InstanceFac
 		Enhancer e = new Enhancer();		
 		e.setSuperclass(loaded);
 		e.setCallbackFilter(filter);
-		e.setCallbacks((Callback[]) getCallbacks().toArray());
+		
+		Callback callbacks[] = new Callback[3];
+		callbacks[0] = NoOp.INSTANCE;
+		callbacks[1] = transactionCallback;
+		callbacks[2] = lockTransactionCallback;
+		
+		e.setCallbacks(callbacks);
 		
 		return e.create();
 	}
@@ -78,11 +78,19 @@ public class ATGTransactionFactory extends GenericService implements InstanceFac
 		return false;
 	}
 
-	public List<Callback> getCallbacks() {
-		return callbacks;
-	}
+	public ATGTransactionInterceptor getTransactionCallback() {
+	    return transactionCallback;
+    }
 
-	public void setCallbacks(List<Callback> callbacks) {
-		this.callbacks = callbacks;
-	}
+	public void setTransactionCallback(ATGTransactionInterceptor transactionCallback) {
+	    this.transactionCallback = transactionCallback;
+    }
+
+	public ATGLockTransactionInterceptor getLockTransactionCallback() {
+	    return lockTransactionCallback;
+    }
+
+	public void setLockTransactionCallback(ATGLockTransactionInterceptor lockTransactionCallback) {
+	    this.lockTransactionCallback = lockTransactionCallback;
+    }
 }
