@@ -26,7 +26,7 @@ public void executeWithTransaction(Order order) {
 	getOrderManager().updateOrder(order);
     }
 }
-
+```
 To test, you can enable the loggingDebug from component:
 
 	/com/leonhardt/transaction/ATGTransactionInterceptor
