@@ -15,6 +15,18 @@ In your component:
 	$instanceFactory=/com/leonhardt/transaction/ATGTransactionFactory
 
 
+Now, if you want lock the order use this:
+
+```java
+@ATGLockTransaction
+public void executeWithTransaction(Order order) {
+    synchronized (order) {
+	vlogInfo("the order will be locked ");
+	// TODO all the order updates
+	getOrderManager().updateOrder(order);
+    }
+}
+```
 To test, you can enable the loggingDebug from component:
 
 	/com/leonhardt/transaction/ATGTransactionInterceptor
