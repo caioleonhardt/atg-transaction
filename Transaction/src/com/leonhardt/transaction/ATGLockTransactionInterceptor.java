@@ -39,6 +39,13 @@ public class ATGLockTransactionInterceptor extends GenericService implements Met
 				break;
 			}
 		}
+		
+		// if didn't find any order on arguments
+		// will execute the method without problems
+		if (order == null) {
+			vlogWarning("Any order was found on parameters, the method will be invoked without lock.");
+			return methodProxy.invokeSuper(object, args);
+		}
 	
 		ATGLockTransaction annotation = method.getAnnotation(ATGLockTransaction.class);
 		String lockId = LockType.PROFILE.equals(annotation.lockType()) ?  order.getProfileId() : order.getId();
