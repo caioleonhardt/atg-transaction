@@ -6,7 +6,6 @@ import javax.transaction.TransactionManager;
 
 import net.sf.cglib.proxy.MethodInterceptor;
 import net.sf.cglib.proxy.MethodProxy;
-import atg.commerce.order.Order;
 import atg.commerce.order.OrderManager;
 import atg.dtm.TransactionDemarcation;
 import atg.dtm.TransactionDemarcationException;
@@ -22,33 +21,15 @@ public class ATGLockTransactionInterceptor extends GenericService implements Met
 	private TransactionManager transactionManager;
 	
 	@Override
-	public Object intercept(Object object, Method method, Object[] args,
-			MethodProxy methodProxy) throws Throwable {
+	public Object intercept(Object object, Method method, Object[] args, MethodProxy methodProxy) throws Throwable {
 
+		String lockId = LockUtils.lockPath(method, args);
+		
 		boolean acquireLock = false;
 		ClientLockManager clm = getClientLockManager();
 		TransactionManager tm = getTransactionManager();
 		TransactionDemarcation td = new TransactionDemarcation();
 		Object result = null;
-
-		// get order to synchronize
-		Order order = null;
-		for (int i = 0; i < args.length; i++) {
-			if (args[i] instanceof Order) {
-				order = (Order) args[i];
-				break;
-			}
-		}
-		
-		// if didn't find any order on arguments
-		// will execute the method without problems
-		if (order == null) {
-			vlogWarning("Any order was found on parameters, the method will be invoked without lock.");
-			return methodProxy.invokeSuper(object, args);
-		}
-	
-		ATGLockTransaction annotation = method.getAnnotation(ATGLockTransaction.class);
-		String lockId = LockType.PROFILE.equals(annotation.lockType()) ?  order.getProfileId() : order.getId();
 
 		try {
 			acquireLock = !clm.hasWriteLock(lockId, Thread.currentThread());
@@ -79,12 +60,11 @@ public class ATGLockTransactionInterceptor extends GenericService implements Met
 					}
 				} catch (TransactionDemarcationException e) {
 					vlogError(e, "Error ending transaction");
-					throw e;
 				}
 			}
 		} catch (DeadlockException e) {
 			vlogError(e, "Exception in ClientLockManager");
-			throw e;
+
 		} finally {
 			try {
 				if (acquireLock) {
@@ -93,11 +73,12 @@ public class ATGLockTransactionInterceptor extends GenericService implements Met
 				}
 			} catch (LockManagerException e) {
 				vlogError(e, "LockManagerException");
-				throw e;
 			}
 		}
+		
+		return result;
 	}
-
+	
 	public OrderManager getOrderManager() {
 		return orderManager;
 	}

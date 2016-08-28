@@ -1,5 +1,5 @@
 Manifest-Version: 1.0
-ATG-Config-Path: config/
+ATG-Config-Path: src/main/config/
 ATG-Class-Path: lib/classes.jar
 ATG-Client-Class-Path: lib/classes.jar
 ATG-Required: DAS DCS
@@ -7,5 +7,5 @@ ATG-Required: DAS DCS
 Name: lib/classes.jar
 ATG-Client-Update-File: true
 
-Name: config/
+Name: src/main/config/
 ATG-Client-Update-File: true

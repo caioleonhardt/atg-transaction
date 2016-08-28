@@ -21,6 +21,7 @@ public class ATGTransactionFactory extends GenericService implements InstanceFac
 
 	private ATGTransactionInterceptor transactionCallback;
 	private ATGLockTransactionInterceptor lockTransactionCallback;
+	private ATGLockOrderTransactionInterceptor lockOrderTransactionCallback;
 	
 	private static CallbackFilter filter = new CallbackFilter() {
 		
@@ -33,8 +34,12 @@ public class ATGTransactionFactory extends GenericService implements InstanceFac
 				return 1;
 			}
 
-			if (method.isAnnotationPresent(ATGLockTransaction.class)) {
+			if (method.isAnnotationPresent(ATGLock.class)) {
 				return 2;
+			}
+
+			if (method.isAnnotationPresent(ATGLockOrder.class)) {
+				return 3;
 			}
 			
 			return 0;
@@ -58,10 +63,11 @@ public class ATGTransactionFactory extends GenericService implements InstanceFac
 		e.setSuperclass(loaded);
 		e.setCallbackFilter(filter);
 		
-		Callback callbacks[] = new Callback[3];
+		Callback callbacks[] = new Callback[4];
 		callbacks[0] = NoOp.INSTANCE;
-		callbacks[1] = transactionCallback;
-		callbacks[2] = lockTransactionCallback;
+		callbacks[1] = getTransactionCallback();
+		callbacks[2] = getLockTransactionCallback();
+		callbacks[3] = getLockOrderTransactionCallback();
 		
 		e.setCallbacks(callbacks);
 		
@@ -78,6 +84,23 @@ public class ATGTransactionFactory extends GenericService implements InstanceFac
 		return false;
 	}
 
+	public ATGLockTransactionInterceptor getLockTransactionCallback() {
+	    return lockTransactionCallback;
+    }
+
+	public void setLockTransactionCallback(ATGLockTransactionInterceptor lockTransactionCallback) {
+	    this.lockTransactionCallback = lockTransactionCallback;
+    }
+
+	public ATGLockOrderTransactionInterceptor getLockOrderTransactionCallback() {
+	    return lockOrderTransactionCallback;
+    }
+
+	public void setLockOrderTransactionCallback(
+            ATGLockOrderTransactionInterceptor lockOrderTransactionCallback) {
+	    this.lockOrderTransactionCallback = lockOrderTransactionCallback;
+    }
+
 	public ATGTransactionInterceptor getTransactionCallback() {
 	    return transactionCallback;
     }
@@ -86,11 +109,4 @@ public class ATGTransactionFactory extends GenericService implements InstanceFac
 	    this.transactionCallback = transactionCallback;
     }
 
-	public ATGLockTransactionInterceptor getLockTransactionCallback() {
-	    return lockTransactionCallback;
-    }
-
-	public void setLockTransactionCallback(ATGLockTransactionInterceptor lockTransactionCallback) {
-	    this.lockTransactionCallback = lockTransactionCallback;
-    }
 }

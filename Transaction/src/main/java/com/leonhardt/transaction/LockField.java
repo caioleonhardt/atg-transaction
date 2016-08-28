@@ -1,5 +1,5 @@
 package com.leonhardt.transaction;
 
-public enum LockType {
+public enum LockField {
 	ORDER, PROFILE
 }

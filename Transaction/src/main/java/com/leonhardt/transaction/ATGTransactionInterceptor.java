@@ -46,10 +46,8 @@ public class ATGTransactionInterceptor extends GenericService implements MethodI
 					td.end(shouldRollback);
 				}
 			} catch (TransactionDemarcationException tde) {
-				if (isLoggingError()) {
+				if (isLoggingError())
 					logError(tde);
-				}
-				throw tde;
 			}
 		}
 	}

@@ -9,5 +9,5 @@ import java.lang.annotation.Target;
 @Target(ElementType.METHOD)
 public @interface ATGLockTransaction {
 	
-	public LockType lockType() default LockType.ORDER;
+	public LockField lockType() default LockField.ORDER;
 }
