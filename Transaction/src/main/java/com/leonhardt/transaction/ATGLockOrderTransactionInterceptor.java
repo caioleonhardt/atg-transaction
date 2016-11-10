@@ -4,6 +4,8 @@ import java.lang.reflect.Method;
 
 import javax.transaction.TransactionManager;
 
+import com.leonhardt.transaction.names.LockUtils;
+
 import net.sf.cglib.proxy.MethodInterceptor;
 import net.sf.cglib.proxy.MethodProxy;
 import atg.commerce.order.OrderManager;
@@ -24,7 +26,7 @@ public class ATGLockOrderTransactionInterceptor extends GenericService implement
 	public Object intercept(Object object, Method method, Object[] args, MethodProxy methodProxy) throws Throwable {
 	    ATGLockOrder annotation = method.getAnnotation(ATGLockOrder.class);
 	    
-	    String lockId = LockUtils.lockOrderPath(method, args, annotation.field());
+	    String lockId = LockUtils.lockPath(method, args);
 
 		boolean isWriteLockDefault = LockType.WRITE.equals(annotation.type());
 		

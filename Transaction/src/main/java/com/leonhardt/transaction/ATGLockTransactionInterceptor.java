@@ -4,6 +4,8 @@ import java.lang.reflect.Method;
 
 import javax.transaction.TransactionManager;
 
+import com.leonhardt.transaction.names.LockUtils;
+
 import net.sf.cglib.proxy.MethodInterceptor;
 import net.sf.cglib.proxy.MethodProxy;
 import atg.commerce.order.OrderManager;
